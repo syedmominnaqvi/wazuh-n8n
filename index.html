@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Detection & Response Pipeline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent: #00d4aa;
+            --accent-dim: #00d4aa33;
+            --text-primary: #f0f0f0;
+            --text-secondary: #888;
+            --border: #2a2a3a;
+            --gradient-1: linear-gradient(135deg, #00d4aa 0%, #00a8ff 100%);
+            --gradient-2: linear-gradient(135deg, #1a1a24 0%, #0a0a0f 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Animated background */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, var(--accent-dim) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, #00a8ff22 0%, transparent 40%),
+                radial-gradient(circle at 40% 80%, #ff006622 0%, transparent 30%);
+            z-index: -1;
+            animation: pulse 15s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header */
+        header {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--accent-dim);
+            border: 1px solid var(--accent);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 24px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        /* Tech Stack */
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+
+        .tech-tag {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .tech-tag:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        /* Cards */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 80px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 212, 170, 0.1);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--accent-dim);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: gap 0.3s ease;
+        }
+
+        .card-link:hover {
+            gap: 12px;
+        }
+
+        /* Video Section */
+        .video-section {
+            margin-bottom: 80px;
+        }
+
+        .video-section h2 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        .video-wrapper iframe,
+        .video-wrapper video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .video-placeholder span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        /* Pipeline Section */
+        .pipeline {
+            margin-bottom: 80px;
+        }
+
+        .pipeline h2 {
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .pipeline-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .pipeline-step {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            padding: 24px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .pipeline-step::after {
+            content: '→';
+            position: absolute;
+            right: -24px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .pipeline-step:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pipeline-step h4 {
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .pipeline-step p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .pipeline-steps {
+                flex-direction: column;
+            }
+
+            .pipeline-step::after {
+                display: none;
+            }
+
+            .pipeline-step {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    
+    <header>
+        <div class="container">
+            <div class="badge">SIEM + SOAR Integration</div>
+            <h1>Security Detection & Response Pipeline</h1>
+            <p class="subtitle">
+                Automated threat detection and response using Wazuh SIEM and n8n workflow automation
+            </p>
+            
+            <div class="tech-stack">
+                <span class="tech-tag">🛡️ Wazuh SIEM</span>
+                <span class="tech-tag">⚡ n8n SOAR</span>
+                <span class="tech-tag">🐳 Docker</span>
+                <span class="tech-tag">🐧 Kali Linux</span>
+                <span class="tech-tag">🔐 SSH</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Resource Cards -->
+        <section class="cards">
+            <div class="card">
+                <div class="card-icon">📄</div>
+                <h3>Project Report</h3>
+                <p>Comprehensive documentation covering architecture, implementation details, and analysis of the security pipeline.</p>
+                <a href="report.pdf" class="card-link" target="_blank">
+                    View Report <span>→</span>
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">🎬</div>
+                <h3>Video Demo</h3>
+                <p>Full walkthrough demonstrating the detection-to-response pipeline with live attack simulation.</p>
+                <a href="#video" class="card-link">
+                    Watch Demo <span>→</span>
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-icon">💻</div>
+                <h3>Source Code</h3>
+                <p>Complete Docker configuration, scripts, and setup documentation for replicating the environment.</p>
+                <a href="https://github.com/momin-naqvi/wazuh-docker" class="card-link" target="_blank">
+                    View on GitHub <span>→</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Pipeline Visualization -->
+        <section class="pipeline">
+            <h2>Detection → Response Flow</h2>
+            <div class="pipeline-steps">
+                <div class="pipeline-step">
+                    <div class="step-number">1</div>
+                    <h4>Attack</h4>
+                    <p>SSH Brute Force</p>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">2</div>
+                    <h4>Detection</h4>
+                    <p>Wazuh Agent</p>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">3</div>
+                    <h4>Alert</h4>
+                    <p>Rule 5760</p>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">4</div>
+                    <h4>Automation</h4>
+                    <p>n8n Workflow</p>
+                </div>
+                <div class="pipeline-step">
+                    <div class="step-number">5</div>
+                    <h4>Response</h4>
+                    <p>Email Alert</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Video Section -->
+        <section class="video-section" id="video">
+            <h2>Video Demonstration</h2>
+            <div class="video-wrapper">
+                <!-- Replace with your video embed or file -->
+                <video controls poster="thumbnail.png">
+                    <source src="demo.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <!-- Or use YouTube embed:
+                <iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" frameborder="0" allowfullscreen></iframe>
+                -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Built for Security Operations Assignment</p>
+            <p style="margin-top: 8px;">
+                <a href="https://github.com/momin-naqvi/wazuh-docker">GitHub Repository</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
+
